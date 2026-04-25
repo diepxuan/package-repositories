@@ -1,14 +1,23 @@
+# Build artifacts
+*.deb
+*.ddeb
+*.buildinfo
+*.changes
+*.dsc
+*.tar.gz
+*.tar.xz
 *.tar
 *.tar.*
 *.jar
 *.exe
 *.msi
-*.deb
 *.zip
 *.tgz
 *.log
 *.log.*
 *.sig
 
+# Output directories
 pkg/
-src/
+dists/
+build/

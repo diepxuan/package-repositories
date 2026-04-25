@@ -1,0 +1,15 @@
+Source: diepxuan-repositories
+Section: misc
+Priority: optional
+Maintainer: Tran Ngoc Duc <ductn@diepxuan.com>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.5.1
+Homepage: https://github.com/diepxuan/package-repositories
+
+Package: diepxuan-repositories
+Architecture: all
+Depends: ${misc:Depends}, curl, gnupg, lsb-release, apt-transport-https
+Description: DiepXuan Microsoft APT repository setup
+  This package adds Microsoft APT repository and GPG key to the system.
+  It enables installation of msodbcsql18, unixodbc-dev and other
+  Microsoft packages for PHP SQL Server extensions.

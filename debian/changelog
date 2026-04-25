@@ -1,0 +1,8 @@
+diepxuan-repositories (1.0.0) unstable; urgency=low
+
+  * Initial release.
+  * Add Microsoft APT repository setup.
+  * Import Microsoft GPG key.
+  * Enable msodbcsql18 and unixodbc-dev installation.
+
+ -- Tran Ngoc Duc <ductn@diepxuan.com>  Sat, 25 Apr 2026 20:00:00 +0700

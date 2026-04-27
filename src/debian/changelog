@@ -1,3 +1,12 @@
+diepxuan-repositories (1.0.1) unstable; urgency=medium
+
+  * Get release_tag and changelog from GitHub events
+  * Add trim function to handle whitespace-only strings
+  * Support release, push, and pull_request events
+  * Fallback to debian/changelog if GitHub API returns empty
+
+ -- Tran Ngoc Duc <ductn@diepxuan.com>  Mon, 27 Apr 2026 22:27:00 +0700
+
 diepxuan-repositories (1.0.0) unstable; urgency=low
 
   * Initial release.

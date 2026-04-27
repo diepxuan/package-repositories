@@ -196,11 +196,11 @@ end_group
 start_group Update Package Configuration in Changelog
 # Determine release_tag and package_clog from GitHub events or fallback to changelog
 
-# Helper function to trim whitespace (space, tab, newline) from string
-trim() {
+# Helper function to check if string is empty or only contains whitespace
+is_empty_or_whitespace() {
     local str="$1"
-    str=$(echo "$str" | sed 's/^[ \t\n\r]*//;s/[ \t\n\r]*$//')
-    echo "$str"
+    [[ -z "${str// }" ]] && [[ -z "${str//\t}" ]] && [[ -z "${str//\n}" ]] && return 0
+    return 1
 }
 
 # Check if triggered by GitHub release event
@@ -223,15 +223,12 @@ if [[ -n "$GITHUB_EVENT_NAME" ]]; then
             RELEASE_TAG=$(echo "$RELEASE_INFO" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4 | sed 's/^v//')
             RELEASE_BODY=$(echo "$RELEASE_INFO" | grep -o '"body": "[^"]*"' | cut -d'"' -f4 | sed 's/\\n/\n/g; s/\\r//g')
             
-            RELEASE_TAG=$(trim "$RELEASE_TAG")
-            RELEASE_BODY=$(trim "$RELEASE_BODY")
-            
-            if [[ -n "$RELEASE_TAG" ]]; then
+            if ! is_empty_or_whitespace "$RELEASE_TAG"; then
                 release_tag="$RELEASE_TAG"
                 echo "release_tag from GitHub: $release_tag"
             fi
             
-            if [[ -n "$RELEASE_BODY" ]]; then
+            if ! is_empty_or_whitespace "$RELEASE_BODY"; then
                 package_clog="$RELEASE_BODY"
                 echo "package_clog from GitHub release: $package_clog"
             fi
@@ -242,14 +239,10 @@ fi
 # Fallback to changelog if not set
 release_tag=${release_tag:-$(cat $changelog | head -n 1 | awk '{print $2}' | sed 's|[()]||g')}
 
-# Get changelog notes (line 3 to before the -- line) and trim
+# Get changelog notes (line 3 to before the -- line)
 CHANGELOG_NOTES=$(cat $changelog | head -n 1 | sed -n '3,/-- /p' | sed '3,$d' | sed 's/^[ \t]*//;s/[ \t]*$//')
-CHANGELOG_NOTES=$(trim "$CHANGELOG_NOTES")
-if [[ -n "$CHANGELOG_NOTES" ]]; then
-    package_clog=${package_clog:-$CHANGELOG_NOTES}
-else
-    package_clog=${package_clog:-'Update package'}
-fi
+[[ is_empty_or_whitespace "$package_clog" ]] && package_clog=$CHANGELOG_NOTES
+[[ is_empty_or_whitespace "$package_clog" ]] && package_clog='Update package'
 
 echo "release_tag: $release_tag+$DISTRIB~$RELEASE"
 echo "package_clog: $package_clog"

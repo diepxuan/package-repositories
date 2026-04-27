@@ -1,0 +1,78 @@
+# Runs tests and verifies that the package can be built.
+name: Build
+
+# Controls when the action will run.
+on:
+  # Triggers the workflow on push or pull request events but only for the master branch
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  package-build:
+    runs-on: ${{matrix.operating-system}}
+    strategy:
+      fail-fast: false
+      matrix:
+        operating-system: [ubuntu-latest]
+    # Steps represent a sequence of tasks that are executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup GPG
+        uses: diepxuan/.github/.github/actions/gpg-setup@main
+        with:
+          gpg_key: ${{ secrets.GPG_KEY }}
+          gpg_key_id: ${{ secrets.GPG_KEY_ID }}
+          committer_email: ${{ secrets.GIT_COMMITTER_EMAIL }}
+          committer_name: ${{ github.repository_owner }}
+      - name: SSH configuration
+        uses: diepxuan/.github/.github/actions/ssh-setup@main
+        with:
+          ssh_key_id: ${{ secrets.SSH_ID_RSA }}
+
+      - name: Package build
+        working-directory: src
+        shell: bash
+        run: |
+          sudo timedatectl set-timezone Asia/Ho_Chi_Minh
+          chmod +x build.sh
+          bash build.sh
+        env:
+          INPUT_APT_OPTS:
+          INPUT_EXTRA_BUILD_DEPS:
+          repository: ${{ github.repository }}
+          branch: ${{ github.ref_name }}
+          DEBEMAIL: ductn@diepxuan.com
+          EMAIL: ductn@diepxuan.com
+          DEBFULLNAME: Tran Ngoc Duc
+          NAME: Tran Ngoc Duc
+          DEBIAN_FRONTEND: noninteractive
+          GPG_KEY: ${{ secrets.GPG_KEY }}
+          DEB_SIGN_KEYID: ${{ secrets.GPG_KEY_ID }}
+          GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+
+  package-publish:
+    needs: package-build
+    permissions:
+      contents: write
+    uses: diepxuan/.github/.github/workflows/debian-package-publish.yml@main
+    with:
+      message: ${{ github.event.head_commit.message }}
+    secrets:
+      GPG_KEY: ${{ secrets.GPG_KEY }}
+      GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+      GIT_COMMITTER_EMAIL: ${{ secrets.GIT_COMMITTER_EMAIL }}
+      SSH_ID_RSA: ${{ secrets.SSH_ID_RSA }}

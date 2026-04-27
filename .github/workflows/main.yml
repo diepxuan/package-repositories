@@ -68,6 +68,7 @@ jobs:
     needs: package-build
     permissions:
       contents: write
+      pull-requests: write
     uses: diepxuan/.github/.github/workflows/debian-package-publish.yml@main
     with:
       message: ${{ github.event.head_commit.message }}

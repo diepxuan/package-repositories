@@ -241,8 +241,8 @@ release_tag=${release_tag:-$(cat $changelog | head -n 1 | awk '{print $2}' | sed
 
 # Get changelog notes (line 3 to before the -- line)
 CHANGELOG_NOTES=$(cat $changelog | head -n 1 | sed -n '3,/-- /p' | sed '3,$d' | sed 's/^[ \t]*//;s/[ \t]*$//')
-[[ is_empty_or_whitespace "$package_clog" ]] && package_clog=$CHANGELOG_NOTES
-[[ is_empty_or_whitespace "$package_clog" ]] && package_clog='Update package'
+is_empty_or_whitespace "$package_clog" && package_clog=$CHANGELOG_NOTES
+is_empty_or_whitespace "$package_clog" && package_clog='Update package'
 
 echo "release_tag: $release_tag+$DISTRIB~$RELEASE"
 echo "package_clog: $package_clog"

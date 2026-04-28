@@ -3,19 +3,50 @@ set -e
 
 case "$1" in
 configure)
-    # Import Microsoft GPG key
-    if [ ! -f /usr/share/keyrings/microsoft-prod.gpg ]; then
-        curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | \
-            gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+    # Detect distribution and version
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
     fi
-
-    # Add Microsoft APT repository
-    if [ ! -f /etc/apt/sources.list.d/microsoft-prod.list ]; then
-        CODENAME=$(lsb_release -cs 2>/dev/null || echo "jammy")
-        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/microsoft-prod.gpg] \
-https://packages.microsoft.com/ubuntu/${CODENAME}/prod ${CODENAME} main" | \
-            tee /etc/apt/sources.list.d/microsoft-prod.list > /dev/null
+    
+    DISTRIB_ID="${ID}"
+    DISTRIB_VERSION_ID="${VERSION_ID}"
+    
+    # Map distribution names
+    case "$DISTRIB_ID" in
+        debian)
+            DIST_NAME="debian"
+            ;;
+        ubuntu)
+            DIST_NAME="ubuntu"
+            ;;
+        *)
+            # Try lsb-release as fallback
+            if command -v lsb_release >/dev/null 2>&1; then
+                DIST_NAME=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
+                DISTRIB_VERSION_ID=$(lsb_release -rs)
+            else
+                echo "Unsupported distribution: $DISTRIB_ID"
+                exit 1
+            fi
+            ;;
+    esac
+    
+    # Shorten version (e.g., 24.04 -> 24.04, 12 -> 12)
+    DIST_VERSION="${DISTRIB_VERSION_ID%%.*}"
+    
+    # Download and install Microsoft config package
+    CONFIG_URL="https://packages.microsoft.com/config/${DIST_NAME}/${DISTRIB_VERSION_ID}/packages-microsoft-prod.deb"
+    CONFIG_FILE="/tmp/packages-microsoft-prod.deb"
+    
+    echo "Downloading Microsoft repository config from $CONFIG_URL"
+    if curl -fsSL -o "$CONFIG_FILE" "$CONFIG_URL"; then
+        dpkg -i "$CONFIG_FILE"
+        rm -f "$CONFIG_FILE"
         apt-get update
+    else
+        echo "Failed to download Microsoft repository config"
+        rm -f "$CONFIG_FILE"
+        exit 1
     fi
     ;;
 

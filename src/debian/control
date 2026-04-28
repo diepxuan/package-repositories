@@ -8,7 +8,7 @@ Homepage: https://github.com/diepxuan/package-repositories
 
 Package: diepxuan-repositories
 Architecture: all
-Depends: ${misc:Depends}, curl, gnupg, lsb-release, apt-transport-https
+Depends: ${misc:Depends}, curl, gnupg, lsb-release, apt-transport-https, dpkg
 Description: DiepXuan Microsoft APT repository setup
   This package adds Microsoft APT repository and GPG key to the system.
   It enables installation of msodbcsql18, unixodbc-dev and other

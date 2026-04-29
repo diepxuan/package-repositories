@@ -154,6 +154,9 @@ if ! gpg --list-keys --with-colons | grep -q "fpr"; then
     echo "$GPG_KEY====" | tr -d '\n' | fold -w 4 | sed '$ d' | tr -d '\n' | fold -w 76 | base64 -di | gpg --batch --import || true
 fi
 
+# Lấy danh sách tất cả GPG key IDs
+KEYS=$(gpg --list-secret-keys --keyid-format=long | awk '/sec/{print $2}' | cut -d'/' -f2)
+
 # Lặp qua từng key và chỉnh sửa
 for KEY in $KEYS; do
     # Cập nhật expiration date của subkey

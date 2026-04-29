@@ -3,39 +3,6 @@ set -e
 
 case "$1" in
 configure)
-    # Detect distribution and version
-    if [ -f /etc/os-release ]; then
-        . /etc/os-release
-    fi
-    
-    DISTRIB_ID="${ID}"
-    DISTRIB_VERSION_ID="${VERSION_ID}"
-    
-    # Map distribution names
-    case "$DISTRIB_ID" in
-        debian)
-            DIST_NAME="debian"
-            ;;
-        ubuntu)
-            DIST_NAME="ubuntu"
-            ;;
-        *)
-            # Try lsb-release as fallback
-            if command -v lsb_release >/dev/null 2>&1; then
-                DIST_NAME=$(lsb_release -is | tr '[:upper:]' '[:lower:]')
-                DISTRIB_VERSION_ID=$(lsb_release -rs)
-            else
-                echo "Unsupported distribution: $DISTRIB_ID"
-                exit 1
-            fi
-            ;;
-    esac
-    
-    # Shorten version (e.g., 24.04 -> 24.04, 12 -> 12)
-    DIST_VERSION="${DISTRIB_VERSION_ID%%.*}"
-    
-    # Update APT with DiepXuan PPA (Microsoft packages are pulled via reprepro)
-    apt-get update -qq
     ;;
 
 abort-upgrade|abort-remove|abort-deconfigure)

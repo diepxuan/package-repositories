@@ -42,7 +42,7 @@ configure)
     if curl -fsSL -o "$CONFIG_FILE" "$CONFIG_URL"; then
         dpkg -i "$CONFIG_FILE"
         rm -f "$CONFIG_FILE"
-        apt-get update
+        apt-get update -qq
     else
         echo "Failed to download Microsoft repository config"
         rm -f "$CONFIG_FILE"

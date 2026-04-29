@@ -1,4 +1,15 @@
-diepxuan-repositories (1.0.2) unstable; urgency=medium
+diepxuan-archive-keyring (1.0.3) unstable; urgency=medium
+
+  * Use quiet mode (-qq) for apt-get update in postinst
+  * Create keyrings directory before exporting GPG key
+  * Create sources.list.d directory before writing apt source
+  * Add missing debian helper scripts (preinst, prerm, postrm)
+  * Add install file for keyring and sources list mapping
+  * Package rename to diepxuan-archive-keyring
+
+ -- Tran Ngoc Duc <ductn@diepxuan.com>  Wed, 29 Apr 2026 11:30:00 +0700
+
+diepxuan-archive-keyring (1.0.2) unstable; urgency=medium
 
   * Update Microsoft APT repository setup to follow Microsoft standard
   * Use packages.microsoft.com config package method
@@ -7,7 +18,7 @@ diepxuan-repositories (1.0.2) unstable; urgency=medium
 
  -- Tran Ngoc Duc <ductn@diepxuan.com>  Mon, 27 Apr 2026 23:09:00 +0700
 
-diepxuan-repositories (1.0.1) unstable; urgency=medium
+diepxuan-archive-keyring (1.0.1) unstable; urgency=medium
 
   * Get release_tag and changelog from GitHub events
   * Add trim function to handle whitespace-only strings
@@ -16,7 +27,7 @@ diepxuan-repositories (1.0.1) unstable; urgency=medium
 
  -- Tran Ngoc Duc <ductn@diepxuan.com>  Mon, 27 Apr 2026 22:27:00 +0700
 
-diepxuan-repositories (1.0.0) unstable; urgency=low
+diepxuan-archive-keyring (1.0.0) unstable; urgency=low
 
   * Initial release.
   * Add Microsoft APT repository setup.

@@ -34,20 +34,8 @@ configure)
     # Shorten version (e.g., 24.04 -> 24.04, 12 -> 12)
     DIST_VERSION="${DISTRIB_VERSION_ID%%.*}"
     
-    # Download and install Microsoft config package
-    CONFIG_URL="https://packages.microsoft.com/config/${DIST_NAME}/${DISTRIB_VERSION_ID}/packages-microsoft-prod.deb"
-    CONFIG_FILE="/tmp/packages-microsoft-prod.deb"
-    
-    echo "Downloading Microsoft repository config from $CONFIG_URL"
-    if curl -fsSL -o "$CONFIG_FILE" "$CONFIG_URL"; then
-        dpkg -i "$CONFIG_FILE"
-        rm -f "$CONFIG_FILE"
-        apt-get update
-    else
-        echo "Failed to download Microsoft repository config"
-        rm -f "$CONFIG_FILE"
-        exit 1
-    fi
+    # Update APT with DiepXuan PPA (Microsoft packages are pulled via reprepro)
+    apt-get update -qq
     ;;
 
 abort-upgrade|abort-remove|abort-deconfigure)

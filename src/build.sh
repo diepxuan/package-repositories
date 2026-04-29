@@ -85,6 +85,8 @@ env owner $(echo $repository | cut -d '/' -f1)
 env project $(echo $repository | cut -d '/' -f2)
 env module $(echo $project | sed 's/^php-//g')
 
+REPO_URL="https://ppa.diepxuan.com/"
+
 # os evironment
 [[ -f /etc/os-release ]] && . /etc/os-release
 [[ -f /etc/lsb-release ]] && . /etc/lsb-release
@@ -129,8 +131,8 @@ EOF
 printf "man-db man-db/auto-update boolean false\n" | $SUDO debconf-set-selections
 
 $SUDO apt update || true
-$SUDO apt-get install -y build-essential debhelper fakeroot gnupg reprepro wget curl git sudo vim locales lsb-release
-$SUDO apt-get -y install lsb-release ca-certificates curl
+$SUDO apt-get install -y build-essential debhelper fakeroot gnupg reprepro wget curl git sudo locales
+$SUDO apt-get install -y lsb-release ca-certificates curl jq
 
 $SUDO apt update || true
 # In theory, explicitly installing dpkg-dev would not be necessary. `apt-get
@@ -152,38 +154,42 @@ if ! gpg --list-keys --with-colons | grep -q "fpr"; then
     echo "$GPG_KEY====" | tr -d '\n' | fold -w 4 | sed '$ d' | tr -d '\n' | fold -w 76 | base64 -di | gpg --batch --import || true
 fi
 
-# Lấy danh sách tất cả GPG key IDs
-KEYS=$(gpg --list-secret-keys --keyid-format=long | awk '/sec/{print $2}' | cut -d'/' -f2)
-
 # Lặp qua từng key và chỉnh sửa
-for KEY in $KEYS; do
-    # Cập nhật expiration date của subkey
-    gpg --batch --command-fd 0 --edit-key "$KEY" <<EOF
+# Cập nhật expiration date của subkey
+gpg --batch --command-fd 0 --edit-key "$GPG_KEY_ID" <<EOF
 key 1
 expire
 0
 save
 EOF
 
-    # Cập nhật expiration date của key chính
-    gpg --batch --command-fd 0 --edit-key "$KEY" <<EOF
+# Cập nhật expiration date của key chính
+gpg --batch --command-fd 0 --edit-key "$GPG_KEY_ID" <<EOF
 expire
 0
 save
 EOF
 
-    # Đặt key thành Ultimate Trust
-    gpg --batch --command-fd 0 --edit-key "$KEY" <<EOF
+# Đặt key thành Ultimate Trust
+gpg --batch --command-fd 0 --edit-key "$GPG_KEY_ID" <<EOF
 trust
 5
 save
 EOF
-done
+
+gpg --list-secret-keys --keyid-format=long
+mkdir -p "$source_dir/usr/share/keyrings"
+gpg --export "$GPG_KEY_ID" > "$source_dir/usr/share/keyrings/diepxuan.gpg"
 
 if gpg --list-secret-keys --keyid-format=long | grep -q "sec"; then
     export DEB_SIGN_KEYID=$(gpg --list-keys --with-colons --fingerprint | awk -F: '/fpr:/ {print $10; exit}')
 fi
 gpg --list-secret-keys --keyid-format=long
+end_group
+
+start_group Update APT Source
+mkdir -p "$source_dir/etc/apt/sources.list.d"
+echo "deb [signed-by=/usr/share/keyrings/diepxuan.gpg] $REPO_URL $CODENAME main" | $SUDO tee $source_dir/etc/apt/sources.list.d/diepxuan.list
 end_group
 
 start_group View Source Code
@@ -220,8 +226,10 @@ if [[ -n "$GITHUB_EVENT_NAME" ]]; then
         
         # Extract release_tag (version) from release
         if [[ -n "$RELEASE_INFO" ]]; then
-            RELEASE_TAG=$(echo "$RELEASE_INFO" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4 | sed 's/^v//')
-            RELEASE_BODY=$(echo "$RELEASE_INFO" | grep -o '"body": "[^"]*"' | cut -d'"' -f4 | sed 's/\\n/\n/g; s/\\r//g')
+            RELEASE_TAG=$(echo "$RELEASE_INFO" | jq -r '.tag_name // empty' 2>/dev/null | sed 's/^v//')
+            # RELEASE_TAG=$(echo "$RELEASE_INFO" | grep -o '"tag_name": "[^"]*"' | cut -d'"' -f4 | sed 's/^v//')
+            RELEASE_BODY=$(echo "$RELEASE_INFO" | jq -r '.body // empty' 2>/dev/null || echo "")
+            # RELEASE_BODY=${RELEASE_BODY:-$(echo "$RELEASE_INFO" | grep -o '"body": "[^"]*"' | cut -d'"' -f4 | sed 's/\\n/\n/g; s/\\r//g')}
             
             if ! is_empty_or_whitespace "$RELEASE_TAG"; then
                 release_tag="$RELEASE_TAG"

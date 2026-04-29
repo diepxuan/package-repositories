@@ -155,27 +155,29 @@ if ! gpg --list-keys --with-colons | grep -q "fpr"; then
 fi
 
 # Lặp qua từng key và chỉnh sửa
-# Cập nhật expiration date của subkey
-gpg --batch --command-fd 0 --edit-key "$GPG_KEY_ID" <<EOF
+for KEY in $KEYS; do
+    # Cập nhật expiration date của subkey
+    gpg --batch --command-fd 0 --edit-key "$KEY" <<EOF
 key 1
 expire
 0
 save
 EOF
 
-# Cập nhật expiration date của key chính
-gpg --batch --command-fd 0 --edit-key "$GPG_KEY_ID" <<EOF
+    # Cập nhật expiration date của key chính
+    gpg --batch --command-fd 0 --edit-key "$KEY" <<EOF
 expire
 0
 save
 EOF
 
-# Đặt key thành Ultimate Trust
-gpg --batch --command-fd 0 --edit-key "$GPG_KEY_ID" <<EOF
+    # Đặt key thành Ultimate Trust
+    gpg --batch --command-fd 0 --edit-key "$KEY" <<EOF
 trust
 5
 save
 EOF
+done
 
 gpg --list-secret-keys --keyid-format=long
 mkdir -p "$source_dir/usr/share/keyrings"
